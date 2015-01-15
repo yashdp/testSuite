@@ -1,0 +1,44 @@
+#!/bin/bash
+
+if [ $# -ne 2 ] ; then
+  echo "Please enter exactly 2 input arguments"
+    exit 1;
+fi
+
+while read line; do
+
+ls | egrep $line.in > /dev/null
+
+if [ $? -ne 0 ]; then
+
+echo $line.in file not found
+   exit 2;
+fi
+
+ls | egrep $line.out > /dev/null
+
+if [ $? -ne 0 ]; then
+echo $line.out file not found 
+   exit 3;
+fi
+
+Actual=$(mktemp)
+
+./$2 <  $line.in > $Actual
+ 
+
+diff -s $Actual  $line.out  > /dev/null
+
+if [ $? -ne 0 ]; then
+
+    echo "Test Failed:" $line
+    echo "Input:"
+    echo | cat $line.in
+    echo "Expected:"
+    echo | cat $line.out
+    echo "Actual:"
+    echo | cat $Actual
+fi
+
+rm $Actual
+done < $1
